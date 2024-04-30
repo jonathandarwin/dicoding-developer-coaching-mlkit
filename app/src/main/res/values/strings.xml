@@ -1,3 +1,9 @@
 <resources>
     <string name="app_name">DicodingDeveloperCoachingMLKit</string>
+
+    <string name="text_mlkit_title">Machine learning for mobile developers</string>
+    <string name="text_mlkit_desc">ML Kit brings Google’s machine learning expertise to mobile developers in a powerful and easy-to-use package. Make your iOS and Android apps more engaging, personalized, and helpful with solutions that are optimized to run on device.</string>
+    <string name="text_mlkit_start">Get started</string>
+    <string name="text_mlkit_switch_language">Switch Language</string>
+
 </resources>
