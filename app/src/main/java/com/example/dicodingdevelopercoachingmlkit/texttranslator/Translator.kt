@@ -10,6 +10,11 @@ import com.google.mlkit.nl.translate.TranslatorOptions
  */
 class Translator {
 
+    private var translationProgressCount = 0
+
+    val areTranslationAllComplete: Boolean
+        get() = translationProgressCount == 0
+
     fun translate(
         text: String,
         sourceLanguage: Language,
@@ -17,6 +22,8 @@ class Translator {
         onSuccess: (text: String) -> Unit,
         onFailure: (e: Exception) -> Unit,
     ) {
+        translationProgressCount++
+
         val options = TranslatorOptions.Builder()
             .setSourceLanguage(getTranslateLanguage(sourceLanguage))
             .setTargetLanguage(getTranslateLanguage(targetLanguage))
@@ -33,13 +40,16 @@ class Translator {
             .addOnSuccessListener {
                 client.translate(text)
                     .addOnSuccessListener {
+                        translationProgressCount--
                         onSuccess(it)
                     }
                     .addOnFailureListener {
+                        translationProgressCount--
                         onFailure(it)
                     }
             }
             .addOnFailureListener {
+                translationProgressCount--
                 onFailure(it)
             }
     }

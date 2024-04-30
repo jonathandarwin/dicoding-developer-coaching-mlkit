@@ -1,8 +1,10 @@
 package com.example.dicodingdevelopercoachingmlkit.texttranslator
 
 import android.os.Bundle
+import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
+import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import com.example.dicodingdevelopercoachingmlkit.databinding.ActivityTextTranslatorBinding
 
@@ -23,6 +25,8 @@ class TextTranslatorActivity : AppCompatActivity() {
         setContentView(binding.root)
 
         binding.tvTranslate.setOnClickListener {
+            showTranslateLoader()
+
             translateAllText()
 
             language = language.switch()
@@ -42,9 +46,11 @@ class TextTranslatorActivity : AppCompatActivity() {
             targetLanguage = language.switch(),
             onSuccess = {
                 textView.text = it
+                checkLoader()
             },
             onFailure = {
-
+                Toast.makeText(this, "Translation error : $it", Toast.LENGTH_SHORT).show()
+                checkLoader()
             }
         )
     }
@@ -58,5 +64,23 @@ class TextTranslatorActivity : AppCompatActivity() {
                 is TextView -> onTextViewFound(view)
             }
         }
+    }
+
+    private fun checkLoader() {
+        if (translator.areTranslationAllComplete) {
+            hideTranslateLoader()
+        } else {
+            showTranslateLoader()
+        }
+    }
+
+    private fun showTranslateLoader() {
+        binding.loader.visibility = View.VISIBLE
+        binding.tvTranslate.visibility = View.GONE
+    }
+
+    private fun hideTranslateLoader() {
+        binding.loader.visibility = View.GONE
+        binding.tvTranslate.visibility = View.VISIBLE
     }
 }
