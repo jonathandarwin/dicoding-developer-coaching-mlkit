@@ -2,15 +2,24 @@ package com.example.dicodingdevelopercoachingmlkit.yawndetector
 
 import android.Manifest
 import android.os.Bundle
+import android.view.View
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.camera.core.CameraSelector
+import androidx.camera.core.ImageAnalysis
 import androidx.camera.core.Preview
+import androidx.camera.core.resolutionselector.AspectRatioStrategy
+import androidx.camera.core.resolutionselector.ResolutionSelector
 import androidx.camera.lifecycle.ProcessCameraProvider
+import androidx.concurrent.futures.await
 import androidx.core.content.ContextCompat
+import androidx.lifecycle.lifecycleScope
 import com.example.dicodingdevelopercoachingmlkit.databinding.ActivityYawnDetectorBinding
 import com.example.dicodingdevelopercoachingmlkit.util.CameraPermissionHelper
+import kotlinx.coroutines.launch
+import java.util.concurrent.ExecutorService
+import java.util.concurrent.Executors
 
 /**
  * Created by Jonathan Darwin on 29 April 2024
@@ -18,6 +27,8 @@ import com.example.dicodingdevelopercoachingmlkit.util.CameraPermissionHelper
 class YawnDetectorActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityYawnDetectorBinding
+
+    private lateinit var analyzerExecutor: ExecutorService
 
     private val requestPermissionLauncher = registerForActivityResult(
         ActivityResultContracts.RequestPermission(),
@@ -43,37 +54,60 @@ class YawnDetectorActivity : AppCompatActivity() {
         }
     }
 
+    override fun onDestroy() {
+        super.onDestroy()
+        analyzerExecutor.shutdown()
+    }
+
     private fun startCamera() {
-        val cameraProviderFuture = ProcessCameraProvider.getInstance(this)
+        analyzerExecutor = Executors.newSingleThreadExecutor()
 
-        cameraProviderFuture.addListener({
-            // Used to bind the lifecycle of cameras to the lifecycle owner
-            val cameraProvider: ProcessCameraProvider = cameraProviderFuture.get()
+        binding.preview.post {
+            lifecycleScope.launch {
 
-            // Preview
-            val preview = Preview.Builder()
-                .build()
-                .also {
-                    it.setSurfaceProvider(binding.preview.surfaceProvider)
+                val cameraProvider = ProcessCameraProvider.getInstance(this@YawnDetectorActivity).await()
+
+                // Preview
+                val preview = Preview.Builder()
+                    .build()
+                    .also {
+                        it.setSurfaceProvider(binding.preview.surfaceProvider)
+                    }
+
+                val imageAnalysis = ImageAnalysis.Builder()
+                    .setTargetRotation(binding.preview.display.rotation)
+                    .setBackpressureStrategy(ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST)
+                    .build()
+
+                imageAnalysis.setAnalyzer(
+                    analyzerExecutor,
+                    YawnDetector { isYawning ->
+                        runOnUiThread {
+                            binding.tvYawn.visibility = if (isYawning) View.VISIBLE else View.GONE
+                        }
+                    }
+                )
+
+                // Select back camera as a default
+                val cameraSelector = CameraSelector.DEFAULT_FRONT_CAMERA
+
+                try {
+                    // Unbind use cases before rebinding
+                    cameraProvider.unbindAll()
+
+                    // Bind use cases to camera
+                    cameraProvider.bindToLifecycle(
+                        this@YawnDetectorActivity,
+                        cameraSelector,
+                        preview,
+                        imageAnalysis
+                    )
+
+                } catch(throwable: Throwable) {
+                    showMessage("Error when starting camera.")
                 }
-
-
-            // Select back camera as a default
-            val cameraSelector = CameraSelector.DEFAULT_FRONT_CAMERA
-
-            try {
-                // Unbind use cases before rebinding
-                cameraProvider.unbindAll()
-
-                // Bind use cases to camera
-                cameraProvider.bindToLifecycle(
-                    this, cameraSelector, preview)
-
-            } catch(throwable: Throwable) {
-                showMessage("Error when starting camera.")
             }
-
-        }, ContextCompat.getMainExecutor(this))
+        }
     }
 
     private fun showMessage(text: String) {
