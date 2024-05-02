@@ -81,11 +81,27 @@ class YawnDetectorActivity : AppCompatActivity() {
 
                 imageAnalysis.setAnalyzer(
                     analyzerExecutor,
-                    YawnDetector { isYawning ->
-                        runOnUiThread {
-                            binding.tvYawn.visibility = if (isYawning) View.VISIBLE else View.GONE
+                    YawnDetector(
+                        onSuccess = { isYawning ->
+                            runOnUiThread {
+                                binding.tvYawn.visibility = if (isYawning) View.VISIBLE else View.GONE
+                            }
+                        },
+                        onLeftEyePoints = { points, imageWidth, imageHeight ->
+                            binding.overlay.setLeftEyePoints(
+                                points,
+                                imageWidth,
+                                imageHeight
+                            )
+                        },
+                        onFace = { boundingBox, imageWidth, imageHeight ->
+                            binding.overlay.setFaceBoundingBox(
+                                boundingBox,
+                                imageWidth,
+                                imageHeight
+                            )
                         }
-                    }
+                    )
                 )
 
                 // Select back camera as a default

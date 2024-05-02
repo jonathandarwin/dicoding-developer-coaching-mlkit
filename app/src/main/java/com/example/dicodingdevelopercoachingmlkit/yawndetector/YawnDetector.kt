@@ -1,5 +1,7 @@
 package com.example.dicodingdevelopercoachingmlkit.yawndetector
 
+import android.graphics.PointF
+import android.graphics.Rect
 import androidx.annotation.OptIn
 import androidx.camera.core.ExperimentalGetImage
 import androidx.camera.core.ImageAnalysis
@@ -15,6 +17,8 @@ import com.google.mlkit.vision.face.FaceDetectorOptions
 @OptIn(ExperimentalGetImage::class)
 class YawnDetector(
     private val onSuccess: (isYawning: Boolean) -> Unit,
+    private val onLeftEyePoints: (leftEyePoints: List<PointF>, imageWidth: Int, imageHeight: Int) -> Unit,
+    private val onFace: (boundingBox: Rect, imageWidth: Int, imageHeight: Int) -> Unit,
 ) : ImageAnalysis.Analyzer {
 
     private val options = FaceDetectorOptions.Builder()
@@ -25,23 +29,22 @@ class YawnDetector(
     private val faceDetector = FaceDetection.getClient(options)
 
     override fun analyze(imageProxy: ImageProxy) {
-        println("JOE LOG analyze")
         try {
             val image = imageProxy.image ?: return
+            val imageWidth = image.width
+            val imageHeight = image.height
 
             val inputImage = InputImage.fromMediaImage(
                 image,
                 imageProxy.imageInfo.rotationDegrees
             )
 
-            println("JOE LOG analyze...")
             faceDetector.process(inputImage)
                 .addOnSuccessListener { faces ->
                     imageProxy.close()
 
-                    println("JOE LOG success")
-
                     for(face in faces) {
+                        onFace(face.boundingBox, imageWidth, imageHeight)
                         val upperLipPointList = face.getContour(FaceContour.UPPER_LIP_BOTTOM)?.points
                         val lowerLipPointList = face.getContour(FaceContour.LOWER_LIP_TOP)?.points
 
@@ -51,16 +54,18 @@ class YawnDetector(
                         val lowerLip = lowerLipPointList[lowerLipPointList.size / 2]
                         val diff = lowerLip.y - upperLip.y
 
-                        println("JOE LOG diff : $diff")
                         onSuccess(isYawning(diff))
+
+                        face.getContour(FaceContour.LEFT_EYE)?.points?.let {
+                            onLeftEyePoints(it, imageWidth, imageHeight)
+                        }
                     }
                 }
                 .addOnFailureListener {
-                    println("JOE LOG error")
                     imageProxy.close()
                 }
         } catch (e: Exception) {
-            println("JOE LOG error $e")
+            imageProxy.close()
         }
     }
 
