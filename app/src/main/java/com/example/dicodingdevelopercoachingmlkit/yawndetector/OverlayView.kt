@@ -44,7 +44,7 @@ class OverlayView @JvmOverloads constructor(
         color = Color.WHITE
     }
 
-    val textPaint = Paint().apply {
+    val textPaint = Paint(Paint.FAKE_BOLD_TEXT_FLAG).apply {
         color = Color.BLACK
         textSize = 32f
     }
@@ -114,11 +114,13 @@ class OverlayView @JvmOverloads constructor(
             )
 
             /** Draw Board */
+            val topBoard = top - 300
+            val bottomBoard = top
             canvas.drawRect(
                 left,
-                top - 300,
+                topBoard,
                 right,
-                top,
+                bottomBoard,
                 boardPaint
             )
 
@@ -126,8 +128,8 @@ class OverlayView @JvmOverloads constructor(
             val bound = Rect()
             textPaint.getTextBounds(text, 0, text.length, bound)
 
-            val x = (left - right)
-            val y = (bottom - top)
+            val x = left + ((right - left) / 2) - bound.centerX()
+            val y = topBoard + ((bottomBoard - topBoard) / 2) - bound.centerY()
 
             canvas.drawText(
                 text,
