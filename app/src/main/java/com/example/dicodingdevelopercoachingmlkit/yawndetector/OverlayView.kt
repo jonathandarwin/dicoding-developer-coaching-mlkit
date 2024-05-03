@@ -24,7 +24,6 @@ class OverlayView @JvmOverloads constructor(
     attributeSet: AttributeSet? = null,
 ) : View(context, attributeSet) {
 
-    private val spidermanMask = ContextCompat.getDrawable(context, R.drawable.spiderman)
     private val spiderMaskBitmap = BitmapFactory.decodeResource(context.resources, R.drawable.spiderman)
 
     private var leftEyePoints = emptyList<PointF>()
@@ -33,10 +32,21 @@ class OverlayView @JvmOverloads constructor(
     private var scaleX = 1f
     private var scaleY = 1f
 
+    var isMirror: Boolean = true
+
     val rectPaint = Paint().apply {
         color = Color.BLACK
         style = Paint.Style.STROKE
         strokeWidth = 10f
+    }
+
+    val boardPaint = Paint().apply {
+        color = Color.WHITE
+    }
+
+    val textPaint = Paint().apply {
+        color = Color.BLACK
+        textSize = 32f
     }
 
     fun setLeftEyePoints(
@@ -57,7 +67,7 @@ class OverlayView @JvmOverloads constructor(
         imageHeight: Int,
     ) {
         this.boundingBox = boundingBox
-
+        
         scaleX = width / imageHeight.toFloat()
         scaleY = height / imageWidth.toFloat()
         invalidate()
@@ -73,11 +83,13 @@ class OverlayView @JvmOverloads constructor(
     private fun drawFaceBox(canvas: Canvas) {
         /** Left & right depend on front / back camera */
         boundingBox?.let {
-            val left = width - ((it.left) * scaleX)
             val top = (it.top) * scaleY
-            val right = width - ((it.right) * scaleX)
             val bottom = (it.bottom) * scaleY
+            val left = if (isMirror) width - ((it.right) * scaleX) else (it.left) * scaleX
+            val right = if (isMirror) width - ((it.left) * scaleX) else (it.right) * scaleX
 
+
+            /** Draw Mask */
             val scaledspiderMaskBitmap = Bitmap.createScaledBitmap(
                 spiderMaskBitmap,
                 (right - left).toInt(),
@@ -87,11 +99,12 @@ class OverlayView @JvmOverloads constructor(
 
             canvas.drawBitmap(
                 scaledspiderMaskBitmap,
-                right,
+                left,
                 top,
                 null
             )
 
+            /** Draw Face Box */
             canvas.drawRect(
                 left,
                 top,
@@ -99,6 +112,30 @@ class OverlayView @JvmOverloads constructor(
                 bottom,
                 rectPaint
             )
+
+            /** Draw Board */
+            canvas.drawRect(
+                left,
+                top - 300,
+                right,
+                top,
+                boardPaint
+            )
+
+            val text = "Software Engineering Term Quiz"
+            val bound = Rect()
+            textPaint.getTextBounds(text, 0, text.length, bound)
+
+            val x = (left - right)
+            val y = (bottom - top)
+
+            canvas.drawText(
+                text,
+                x,
+                y,
+                textPaint,
+            )
+
         }
     }
 
