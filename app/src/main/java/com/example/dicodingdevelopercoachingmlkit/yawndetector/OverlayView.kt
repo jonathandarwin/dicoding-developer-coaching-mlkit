@@ -1,6 +1,8 @@
 package com.example.dicodingdevelopercoachingmlkit.yawndetector
 
 import android.content.Context
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
 import android.graphics.Canvas
 import android.graphics.Color
 import android.graphics.Matrix
@@ -10,15 +12,20 @@ import android.graphics.Rect
 import android.graphics.RectF
 import android.util.AttributeSet
 import android.view.View
+import androidx.core.content.ContextCompat
 import kotlin.math.max
+import com.example.dicodingdevelopercoachingmlkit.R
 
 /**
  * Created by Jonathan Darwin on 02 May 2024
  */
 class OverlayView @JvmOverloads constructor(
     private val context: Context,
-    private val attributeSet: AttributeSet? = null,
+    attributeSet: AttributeSet? = null,
 ) : View(context, attributeSet) {
+
+    private val spidermanMask = ContextCompat.getDrawable(context, R.drawable.spiderman)
+    private val spiderMaskBitmap = BitmapFactory.decodeResource(context.resources, R.drawable.spiderman)
 
     private var leftEyePoints = emptyList<PointF>()
     private var boundingBox: Rect? = null
@@ -59,28 +66,73 @@ class OverlayView @JvmOverloads constructor(
     override fun onDraw(canvas: Canvas) {
         super.onDraw(canvas)
 
+        drawFaceBox(canvas)
+        drawEyeBox(canvas)
+    }
+
+    private fun drawFaceBox(canvas: Canvas) {
+        /** Left & right depend on front / back camera */
         boundingBox?.let {
+            val left = width - ((it.left) * scaleX)
+            val top = (it.top) * scaleY
+            val right = width - ((it.right) * scaleX)
+            val bottom = (it.bottom) * scaleY
+
+            val scaledspiderMaskBitmap = Bitmap.createScaledBitmap(
+                spiderMaskBitmap,
+                (right - left).toInt(),
+                (bottom - top).toInt(),
+                false
+            )
+
+            canvas.drawBitmap(
+                scaledspiderMaskBitmap,
+                right,
+                top,
+                null
+            )
+
             canvas.drawRect(
-                width - ((it.left) * scaleX),
-                (it.top) * scaleY,
-                width - ((it.right) * scaleX),
-                (it.bottom) * scaleY,
+                left,
+                top,
+                right,
+                bottom,
                 rectPaint
             )
         }
+    }
 
+    private fun drawEyeBox(canvas: Canvas) {
         if (leftEyePoints.isEmpty()) return
 
-        val left = leftEyePoints[0]
-        val right = leftEyePoints[leftEyePoints.size / 2]
-        val top = leftEyePoints[leftEyePoints.size / 4]
-        val bottom = leftEyePoints[leftEyePoints.size / 4 * 3]
+        var mostLeft = Float.MAX_VALUE
+        var mostRight = Float.MIN_VALUE
+        var mostTop = Float.MAX_VALUE
+        var mostBottom = Float.MIN_VALUE
+
+        leftEyePoints.forEach {
+            if (it.x < mostLeft) {
+                mostLeft = it.x
+            }
+
+            if (it.x > mostRight) {
+                mostRight = it.x
+            }
+
+            if (it.y < mostTop) {
+                mostTop = it.y
+            }
+
+            if (it.y > mostBottom) {
+                mostBottom = it.y
+            }
+        }
 
         canvas.drawRect(
-            width - ((left.x) * scaleX),
-            (top.y) * scaleY,
-            width - ((right.x) * scaleX),
-            (bottom.y) * scaleY,
+            width - (mostLeft * scaleX),
+            mostTop * scaleY,
+            width - (mostRight * scaleX),
+            mostBottom * scaleY,
             rectPaint
         )
     }
