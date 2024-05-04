@@ -17,6 +17,8 @@ import androidx.core.content.ContextCompat
 import androidx.lifecycle.lifecycleScope
 import com.example.dicodingdevelopercoachingmlkit.databinding.ActivityYawnDetectorBinding
 import com.example.dicodingdevelopercoachingmlkit.util.CameraPermissionHelper
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
@@ -42,6 +44,19 @@ class YawnDetectorActivity : AppCompatActivity() {
 
     private val cameraPermissionHelper = CameraPermissionHelper(this)
 
+    private val termList = listOf(
+        "API",
+        "Clean Architecture",
+        "SOLID",
+        "YAGNI",
+        "Code Smell",
+        "Boilerplate Code",
+        "Bug",
+        "Compile Time",
+        "Race Condition",
+        "Time Complexity",
+    )
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityYawnDetectorBinding.inflate(layoutInflater)
@@ -51,6 +66,10 @@ class YawnDetectorActivity : AppCompatActivity() {
             startCamera()
         } else {
             requestPermissionLauncher.launch(Manifest.permission.CAMERA)
+        }
+
+        binding.btnStart.setOnClickListener {
+            startTermRandomizer()
         }
     }
 
@@ -84,7 +103,7 @@ class YawnDetectorActivity : AppCompatActivity() {
                     YawnDetector(
                         onSuccess = { isYawning ->
                             runOnUiThread {
-                                binding.tvYawn.visibility = if (isYawning) View.VISIBLE else View.GONE
+//                                binding.tvYawn.visibility = if (isYawning) View.VISIBLE else View.GONE
                             }
                         },
                         onLeftEyePoints = { points, imageWidth, imageHeight ->
@@ -123,6 +142,29 @@ class YawnDetectorActivity : AppCompatActivity() {
                     showMessage("Error when starting camera.")
                 }
             }
+        }
+    }
+
+    private fun startTermRandomizer(timer: Int = 3) {
+        binding.btnStart.visibility = View.GONE
+
+        val job = lifecycleScope.launch {
+            while(isActive) {
+                binding.overlay.text = termList.random()
+                delay(100)
+            }
+        }
+
+        lifecycleScope.launch {
+            var second = 0
+            while(second < timer) {
+                delay(1000)
+                second++
+            }
+
+            job.cancel()
+
+            binding.btnStart.visibility = View.VISIBLE
         }
     }
 

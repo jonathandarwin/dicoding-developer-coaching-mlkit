@@ -32,22 +32,33 @@ class OverlayView @JvmOverloads constructor(
     private var scaleX = 1f
     private var scaleY = 1f
 
-    var isMirror: Boolean = true
-
-    val rectPaint = Paint().apply {
+    private val rectPaint = Paint().apply {
         color = Color.BLACK
         style = Paint.Style.STROKE
         strokeWidth = 10f
     }
 
-    val boardPaint = Paint().apply {
-        color = Color.WHITE
+    private val boardPaint = Paint().apply {
+        color = ContextCompat.getColor(context, R.color.main_board)
     }
 
-    val textPaint = Paint(Paint.FAKE_BOLD_TEXT_FLAG).apply {
-        color = Color.BLACK
-        textSize = 32f
+    private val backBoardPaint = Paint().apply {
+        color = ContextCompat.getColor(context, R.color.back_board)
     }
+
+    private val textPaint = Paint(Paint.FAKE_BOLD_TEXT_FLAG).apply {
+        color = Color.WHITE
+        textSize = 40f
+    }
+
+    var isMirror: Boolean = true
+
+    var text: String = "Soft Eng Terms Quiz"
+        set(value) {
+            field = value
+
+            invalidate()
+        }
 
     fun setLeftEyePoints(
         leftEyePoints: List<PointF>,
@@ -116,6 +127,15 @@ class OverlayView @JvmOverloads constructor(
             /** Draw Board */
             val topBoard = top - 300
             val bottomBoard = top
+
+            canvas.drawRect(
+                left + 15,
+                topBoard + 15,
+                right + 15,
+                bottomBoard + 15,
+                backBoardPaint
+            )
+
             canvas.drawRect(
                 left,
                 topBoard,
@@ -124,7 +144,7 @@ class OverlayView @JvmOverloads constructor(
                 boardPaint
             )
 
-            val text = "Software Engineering Term Quiz"
+
             val bound = Rect()
             textPaint.getTextBounds(text, 0, text.length, bound)
 
