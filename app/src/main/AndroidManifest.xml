@@ -25,7 +25,6 @@
         </activity>
 
         <activity android:name=".yawndetector.FaceDetectionActivity" />
-        <activity android:name=".barcodescanner.BarcodeScannerActivity" />
         <activity android:name=".texttranslator.TextTranslatorActivity" />
     </application>
 
