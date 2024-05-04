@@ -18,24 +18,6 @@ class CameraPermissionHelper(
         ContextCompat.checkSelfPermission(activity, it) == PackageManager.PERMISSION_GRANTED
     }
 
-//    fun requestPermission() {
-//        ActivityCompat.requestPermissions(activity, REQUIRED_PERMISSIONS, REQUEST_CAMERA_PERMISSION)
-//    }
-//
-//    fun checkPermissionResult(
-//        requestCode: Int,
-//        onGranted: () -> Unit,
-//        onDeclined: () -> Unit,
-//    ) {
-//        if (requestCode == REQUEST_CAMERA_PERMISSION) {
-//            if (allPermissionsGranted()) {
-//                onGranted()
-//            } else {
-//                onDeclined()
-//            }
-//        }
-//    }
-
     companion object {
         private val REQUIRED_PERMISSIONS = arrayOf(Manifest.permission.CAMERA)
     }

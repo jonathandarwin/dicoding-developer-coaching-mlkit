@@ -1,7 +1,5 @@
 package com.example.dicodingdevelopercoachingmlkit.yawndetector
 
-import android.graphics.PointF
-import android.graphics.Rect
 import android.graphics.RectF
 import androidx.annotation.OptIn
 import androidx.camera.core.ExperimentalGetImage
@@ -18,9 +16,11 @@ import com.google.mlkit.vision.face.FaceDetectorOptions
  */
 @OptIn(ExperimentalGetImage::class)
 class FaceDetector(
-    private val onFace: (faceInfo: FaceInfo) -> Unit,
+    private val onFaceDetected: (faceInfo: FaceInfo) -> Unit,
+    private val onFailure: (throwable: Throwable) -> Unit,
 ) : ImageAnalysis.Analyzer {
 
+    /** Step 1 : Setup configuration */
     private val options = FaceDetectorOptions.Builder()
         .setPerformanceMode(FaceDetectorOptions.PERFORMANCE_MODE_FAST)
         .setContourMode(FaceDetectorOptions.CONTOUR_MODE_ALL)
@@ -39,40 +39,46 @@ class FaceDetector(
                 imageProxy.imageInfo.rotationDegrees
             )
 
+            /** Step 2 : Run inference */
             faceDetector.process(inputImage)
                 .addOnSuccessListener { faces ->
                     imageProxy.close()
 
                     for(face in faces) {
-                        val upperLipBottomPointList = face.getContour(FaceContour.UPPER_LIP_BOTTOM)?.points
-                        val lowerLipTopPointList = face.getContour(FaceContour.LOWER_LIP_TOP)?.points
-
-                        if(upperLipBottomPointList == null || lowerLipTopPointList == null) return@addOnSuccessListener
-
-                        val upperLip = upperLipBottomPointList[upperLipBottomPointList.size / 2]
-                        val lowerLip = lowerLipTopPointList[lowerLipTopPointList.size / 2]
-                        val diff = lowerLip.y - upperLip.y
-
-                        onFace(
+                        /** Step 3 : Show result to UI */
+                        onFaceDetected(
                             FaceInfo(
                                 imageWidth = imageWidth,
                                 imageHeight = imageHeight,
                                 faceBox = face.boundingBox,
                                 mouthBox = getMouthRect(face),
-                                isYawning = isYawning(diff)
+                                isYawning = isYawning(face),
                             )
                         )
                     }
                 }
                 .addOnFailureListener {
                     imageProxy.close()
+                    onFailure(it)
                 }
-        } catch (e: Exception) {
+        } catch (throwable: Throwable) {
             imageProxy.close()
+            onFailure(throwable)
         }
     }
 
-    private fun isYawning(diff: Float) = diff >= 20
+    private fun isYawning(face: Face): Boolean {
+        val upperLipBottomPointList = face.getContour(FaceContour.UPPER_LIP_BOTTOM)?.points
+        val lowerLipTopPointList = face.getContour(FaceContour.LOWER_LIP_TOP)?.points
+
+        if(upperLipBottomPointList == null || lowerLipTopPointList == null) return false
+
+        val upperLip = upperLipBottomPointList[upperLipBottomPointList.size / 2]
+        val lowerLip = lowerLipTopPointList[lowerLipTopPointList.size / 2]
+        val diff = lowerLip.y - upperLip.y
+
+        return diff >= 20
+    }
 
     private fun getMouthRect(face: Face): RectF {
         val upperLipTopPointList = face.getContour(FaceContour.UPPER_LIP_TOP)?.points.orEmpty()
@@ -105,8 +111,8 @@ class FaceDetector(
 
         return RectF(
             left,
-            right,
             top,
+            right,
             bottom
         )
     }

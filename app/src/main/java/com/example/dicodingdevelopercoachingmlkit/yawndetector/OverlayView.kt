@@ -24,14 +24,30 @@ class OverlayView @JvmOverloads constructor(
     attributeSet: AttributeSet? = null,
 ) : View(context, attributeSet) {
 
-    private val spiderMaskBitmap = BitmapFactory.decodeResource(context.resources, R.drawable.spiderman)
+    /**
+     * Resources
+     */
     private val censoredBitmap = BitmapFactory.decodeResource(context.resources, R.drawable.censored)
 
-    private var boundingBox: Rect? = null
+    /**
+     * Helper
+     */
     private var scaleX = 1f
     private var scaleY = 1f
 
+    /**
+     * Bounding Box
+     */
+    private var boundingBox: Rect? = null
     private var mouthRect: RectF? = null
+
+    /**
+     * Paint
+     */
+    private val rectPaint = Paint().apply {
+        style = Paint.Style.STROKE
+        color = Color.BLACK
+    }
 
     private val boardPaint = Paint().apply {
         color = ContextCompat.getColor(context, R.color.primary)
@@ -46,6 +62,9 @@ class OverlayView @JvmOverloads constructor(
         textSize = 40f
     }
 
+    /**
+     * Public Properties
+     */
     var isMirror: Boolean = true
 
     var text: String = "Soft Eng Terms Quiz"
@@ -55,6 +74,9 @@ class OverlayView @JvmOverloads constructor(
             invalidate()
         }
 
+    /**
+     * Public Methods
+     */
     fun setFaceInfo(faceInfo: FaceInfo) {
         this.boundingBox = faceInfo.faceBox
         this.mouthRect = if (faceInfo.isYawning) faceInfo.mouthBox else null
@@ -68,35 +90,11 @@ class OverlayView @JvmOverloads constructor(
         super.onDraw(canvas)
 
         drawBoardAboveHead(canvas)
-//        drawCensoredMouth(canvas)
+        drawCensoredMouth(canvas)
     }
 
     private fun drawBoardAboveHead(canvas: Canvas) {
-        /**
-         * If we are using front camera, we should mirror the coordinate
-         */
-        boundingBox?.let {
-            val top = (it.top) * scaleY
-            val bottom = (it.bottom) * scaleY
-            val left = if (isMirror) width - ((it.right) * scaleX) else (it.left) * scaleX
-            val right = if (isMirror) width - ((it.left) * scaleX) else (it.right) * scaleX
-
-
-            /** TODO: Uncomment this to draw a mask */
-//            val scaledspiderMaskBitmap = Bitmap.createScaledBitmap(
-//                spiderMaskBitmap,
-//                ((right - left) * 1.2).toInt(),
-//                ((bottom - top) * 1.2).toInt(),
-//                false
-//            )
-//
-//            canvas.drawBitmap(
-//                scaledspiderMaskBitmap,
-//                left,
-//                top,
-//                null
-//            )
-
+        boundingBox?.getScaledRect()?.apply {
             /** TODO: Uncomment this to draw face box */
 //            canvas.drawRect(
 //                left,
@@ -126,7 +124,7 @@ class OverlayView @JvmOverloads constructor(
                 boardPaint
             )
 
-
+            /** Draw Text */
             val bound = Rect()
             textPaint.getTextBounds(text, 0, text.length, bound)
 
@@ -143,7 +141,7 @@ class OverlayView @JvmOverloads constructor(
     }
 
     private fun drawCensoredMouth(canvas: Canvas) {
-        mouthRect?.getScaledRect().apply {
+        mouthRect?.getScaledRect()?.apply {
             val scaledCensored = Bitmap.createScaledBitmap(
                 censoredBitmap,
                 ((right - left) * 1.2).toInt(),
@@ -151,19 +149,27 @@ class OverlayView @JvmOverloads constructor(
                 false
             )
 
+
             canvas.drawBitmap(
                 scaledCensored,
-                left.toFloat(),
-                top.toFloat(),
+                left,
+                top,
                 null
             )
         }
+
     }
 
+    /**
+     * Re-scale the coordinate based on width & height of both image & overlay view.
+     * If we are using front camera, we should mirror the coordinate.
+     */
     private fun RectF.getScaledRect(): RectF = RectF(
         if (isMirror) width - ((right) * scaleX) else (left) * scaleX,
         (top) * scaleY,
         if (isMirror) width - ((left) * scaleX) else (right) * scaleX,
         (bottom) * scaleY,
     )
+
+    private fun Rect.getScaledRect(): RectF = RectF(this).getScaledRect()
 }

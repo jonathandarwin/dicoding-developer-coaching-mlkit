@@ -51,7 +51,7 @@ class FaceDetectionActivity : AppCompatActivity() {
         "Code Smell",
         "Boilerplate Code",
         "Bug",
-        "Compile Time",
+        "Framework",
         "Race Condition",
         "Time Complexity",
     )
@@ -97,13 +97,14 @@ class FaceDetectionActivity : AppCompatActivity() {
 
                 val cameraProvider = ProcessCameraProvider.getInstance(this@FaceDetectionActivity).await()
 
-                // Preview
+                /** Setup camera preview */
                 val preview = Preview.Builder()
                     .build()
                     .also {
                         it.setSurfaceProvider(binding.preview.surfaceProvider)
                     }
 
+                /** Setup analyzer */
                 val imageAnalysis = ImageAnalysis.Builder()
                     .setTargetRotation(binding.preview.display.rotation)
                     .setBackpressureStrategy(ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST)
@@ -112,13 +113,16 @@ class FaceDetectionActivity : AppCompatActivity() {
                 imageAnalysis.setAnalyzer(
                     analyzerExecutor,
                     FaceDetector(
-                        onFace = { faceInfo ->
+                        onFaceDetected = { faceInfo ->
                             binding.overlay.setFaceInfo(faceInfo)
                         },
+                        onFailure = { throwable ->
+                            println("JOE LOG Error when detecting face $throwable")
+                        }
                     )
                 )
 
-                // Select back camera as a default
+                /** Setup camera */
                 val cameraSelector = CameraSelector.DEFAULT_FRONT_CAMERA
 
                 binding.overlay.isMirror = when (cameraSelector.lensFacing) {
@@ -127,10 +131,10 @@ class FaceDetectionActivity : AppCompatActivity() {
                 }
 
                 try {
-                    // Unbind use cases before rebinding
+                    /** Unbind use cases before rebinding */
                     cameraProvider.unbindAll()
 
-                    // Bind use cases to camera
+                    /** Bind use cases to camera */
                     cameraProvider.bindToLifecycle(
                         this@FaceDetectionActivity,
                         cameraSelector,
@@ -145,7 +149,7 @@ class FaceDetectionActivity : AppCompatActivity() {
         }
     }
 
-    private fun startTermRandomizer(timer: Int = 3) {
+    private fun startTermRandomizer(durationInSecond: Int = 3) {
         showStartButton(false)
 
         val job = lifecycleScope.launch {
@@ -156,11 +160,7 @@ class FaceDetectionActivity : AppCompatActivity() {
         }
 
         lifecycleScope.launch {
-            var second = 0
-            while(second < timer) {
-                delay(1000)
-                second++
-            }
+            delay(durationInSecond * 1000L)
 
             job.cancel()
 
