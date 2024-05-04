@@ -67,6 +67,17 @@ class FaceDetector(
         }
     }
 
+    /**
+     * Step:
+     * 1. Get the bottom side of upper lip & top side of bottom lip points
+     * 2. Get the middle points of each points
+     * 3. Find the difference between 2 points
+     * 4. If the difference is larger than the threshold, we consider it as yawning
+     *
+     * Note:
+     * This approach is not effective & not ready for production. This is just
+     * a simulation for learning purpose.
+     */
     private fun isYawning(face: Face): Boolean {
         val upperLipBottomPointList = face.getContour(FaceContour.UPPER_LIP_BOTTOM)?.points
         val lowerLipTopPointList = face.getContour(FaceContour.LOWER_LIP_TOP)?.points
@@ -80,6 +91,12 @@ class FaceDetector(
         return diff >= 20
     }
 
+    /**
+     * Step:
+     * 1. Get top side of upper lip & bottom side of lower lip points
+     * 2. Combine all the points into 1 list
+     * 3. Get the most left, top, right, bottom points from the list
+     */
     private fun getMouthRect(face: Face): RectF {
         val upperLipTopPointList = face.getContour(FaceContour.UPPER_LIP_TOP)?.points.orEmpty()
         val lowerLipBottomPointList = face.getContour(FaceContour.LOWER_LIP_BOTTOM)?.points.orEmpty()
