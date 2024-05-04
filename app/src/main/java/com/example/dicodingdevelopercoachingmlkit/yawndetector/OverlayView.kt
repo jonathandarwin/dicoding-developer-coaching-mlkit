@@ -84,7 +84,9 @@ class OverlayView @JvmOverloads constructor(
     }
 
     private fun drawFaceBox(canvas: Canvas) {
-        /** Left & right depend on front / back camera */
+        /**
+         * If we are using front camera, we should mirror the coordinate
+         */
         boundingBox?.let {
             val top = (it.top) * scaleY
             val bottom = (it.bottom) * scaleY
