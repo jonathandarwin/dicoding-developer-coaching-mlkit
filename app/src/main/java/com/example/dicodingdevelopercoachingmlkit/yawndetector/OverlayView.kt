@@ -5,22 +5,19 @@ import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.graphics.Canvas
 import android.graphics.Color
-import android.graphics.Matrix
 import android.graphics.Paint
-import android.graphics.PointF
 import android.graphics.Rect
 import android.graphics.RectF
 import android.util.AttributeSet
 import android.view.View
 import androidx.core.content.ContextCompat
-import kotlin.math.max
 import com.example.dicodingdevelopercoachingmlkit.R
 
 /**
  * Created by Jonathan Darwin on 02 May 2024
  */
 class OverlayView @JvmOverloads constructor(
-    private val context: Context,
+    context: Context,
     attributeSet: AttributeSet? = null,
 ) : View(context, attributeSet) {
 
