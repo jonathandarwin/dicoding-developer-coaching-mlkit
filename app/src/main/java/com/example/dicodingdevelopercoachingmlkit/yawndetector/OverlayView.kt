@@ -97,8 +97,8 @@ class OverlayView @JvmOverloads constructor(
             /** TODO: Uncomment this to draw a mask */
 //            val scaledspiderMaskBitmap = Bitmap.createScaledBitmap(
 //                spiderMaskBitmap,
-//                (right - left).toInt(),
-//                (bottom - top).toInt(),
+//                ((right - left) * 1.2).toInt(),
+//                ((bottom - top) * 1.2).toInt(),
 //                false
 //            )
 //
@@ -151,7 +151,6 @@ class OverlayView @JvmOverloads constructor(
                 y,
                 textPaint,
             )
-
         }
     }
 }
