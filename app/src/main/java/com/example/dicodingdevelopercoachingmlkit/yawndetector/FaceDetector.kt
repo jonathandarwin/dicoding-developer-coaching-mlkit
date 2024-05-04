@@ -88,7 +88,7 @@ class FaceDetector(
         val lowerLip = lowerLipTopPointList[lowerLipTopPointList.size / 2]
         val diff = lowerLip.y - upperLip.y
 
-        return diff >= 20
+        return diff >= 25
     }
 
     /**
