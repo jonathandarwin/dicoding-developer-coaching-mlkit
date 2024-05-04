@@ -57,9 +57,7 @@ class TextTranslatorActivity : AppCompatActivity() {
 
     private fun traverseAllViewChild(viewGroup: ViewGroup, onTextViewFound: (TextView) -> Unit) {
         for (i in 0 until viewGroup.childCount) {
-            val view = viewGroup.getChildAt(i)
-
-            when(view) {
+            when(val view = viewGroup.getChildAt(i)) {
                 is ViewGroup -> traverseAllViewChild(view, onTextViewFound)
                 is TextView -> onTextViewFound(view)
             }
