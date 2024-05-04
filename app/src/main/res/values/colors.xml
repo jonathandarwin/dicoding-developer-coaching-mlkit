@@ -3,6 +3,6 @@
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
 
-    <color name="main_board">#2D3E50</color>
-    <color name="back_board">#FBBF24</color>
+    <color name="primary">#2D3E50</color>
+    <color name="secondary">#FBBF24</color>
 </resources>

@@ -6,16 +6,31 @@
     android:layout_height="match_parent"
     tools:context=".MainActivity">
 
+    <TextView
+        android:id="@+id/tv_title"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Dicoding Developer Coaching - ML Kit"
+        android:textStyle="bold"
+        android:textSize="20sp"
+        android:layout_marginBottom="40dp"
+        app:layout_constraintVertical_chainStyle="packed"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintBottom_toTopOf="@id/btn_face_detection"
+        />
+
     <Button
-        android:id="@+id/btn_yawn_detector"
+        android:id="@+id/btn_face_detection"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_margin="4dp"
-        android:text="Yawn Detector"
+        android:text="Face Detection"
         app:layout_constraintBottom_toTopOf="@id/btn_text_translator"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/tv_title"
         app:layout_constraintVertical_chainStyle="packed" />
 
     <Button
@@ -24,22 +39,10 @@
         android:layout_height="wrap_content"
         android:layout_margin="4dp"
         android:text="Text Translator"
-        app:layout_constraintBottom_toTopOf="@id/btn_barcode_scanner"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/btn_yawn_detector"
-        app:layout_constraintVertical_chainStyle="packed" />
-
-    <Button
-        android:id="@+id/btn_barcode_scanner"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_margin="4dp"
-        android:text="Barcode Scanner"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/btn_text_translator"
+        app:layout_constraintTop_toBottomOf="@id/btn_face_detection"
         app:layout_constraintVertical_chainStyle="packed" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

@@ -15,7 +15,7 @@ import com.google.mlkit.vision.face.FaceDetectorOptions
  * Created by Jonathan Darwin on 30 April 2024
  */
 @OptIn(ExperimentalGetImage::class)
-class YawnDetector(
+class FaceDetector(
     private val onSuccess: (isYawning: Boolean) -> Unit,
     private val onLeftEyePoints: (leftEyePoints: List<PointF>, imageWidth: Int, imageHeight: Int) -> Unit,
     private val onFace: (boundingBox: Rect, imageWidth: Int, imageHeight: Int) -> Unit,

@@ -1,6 +1,7 @@
 package com.example.dicodingdevelopercoachingmlkit.yawndetector
 
 import android.Manifest
+import android.annotation.SuppressLint
 import android.os.Bundle
 import android.view.View
 import android.widget.Toast
@@ -9,13 +10,11 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.camera.core.CameraSelector
 import androidx.camera.core.ImageAnalysis
 import androidx.camera.core.Preview
-import androidx.camera.core.resolutionselector.AspectRatioStrategy
-import androidx.camera.core.resolutionselector.ResolutionSelector
 import androidx.camera.lifecycle.ProcessCameraProvider
+import androidx.camera.view.PreviewView
 import androidx.concurrent.futures.await
-import androidx.core.content.ContextCompat
 import androidx.lifecycle.lifecycleScope
-import com.example.dicodingdevelopercoachingmlkit.databinding.ActivityYawnDetectorBinding
+import com.example.dicodingdevelopercoachingmlkit.databinding.ActivityFaceDetectionBinding
 import com.example.dicodingdevelopercoachingmlkit.util.CameraPermissionHelper
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
@@ -26,9 +25,9 @@ import java.util.concurrent.Executors
 /**
  * Created by Jonathan Darwin on 29 April 2024
  */
-class YawnDetectorActivity : AppCompatActivity() {
+class FaceDetectionActivity : AppCompatActivity() {
 
-    private lateinit var binding: ActivityYawnDetectorBinding
+    private lateinit var binding: ActivityFaceDetectionBinding
 
     private lateinit var analyzerExecutor: ExecutorService
 
@@ -59,7 +58,7 @@ class YawnDetectorActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        binding = ActivityYawnDetectorBinding.inflate(layoutInflater)
+        binding = ActivityFaceDetectionBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
         if (cameraPermissionHelper.allPermissionsGranted()) {
@@ -68,9 +67,8 @@ class YawnDetectorActivity : AppCompatActivity() {
             requestPermissionLauncher.launch(Manifest.permission.CAMERA)
         }
 
-        binding.btnStart.setOnClickListener {
-            startTermRandomizer()
-        }
+        setupView()
+        setupObserver()
     }
 
     override fun onDestroy() {
@@ -78,13 +76,26 @@ class YawnDetectorActivity : AppCompatActivity() {
         analyzerExecutor.shutdown()
     }
 
+    private fun setupView() {
+        binding.btnStart.setOnClickListener {
+            startTermRandomizer()
+        }
+    }
+
+    private fun setupObserver() {
+        binding.preview.previewStreamState.observe(this) {
+            showStartButton(it == PreviewView.StreamState.STREAMING)
+        }
+    }
+
+    @SuppressLint("RestrictedApi")
     private fun startCamera() {
         analyzerExecutor = Executors.newSingleThreadExecutor()
 
         binding.preview.post {
             lifecycleScope.launch {
 
-                val cameraProvider = ProcessCameraProvider.getInstance(this@YawnDetectorActivity).await()
+                val cameraProvider = ProcessCameraProvider.getInstance(this@FaceDetectionActivity).await()
 
                 // Preview
                 val preview = Preview.Builder()
@@ -100,11 +111,9 @@ class YawnDetectorActivity : AppCompatActivity() {
 
                 imageAnalysis.setAnalyzer(
                     analyzerExecutor,
-                    YawnDetector(
+                    FaceDetector(
                         onSuccess = { isYawning ->
-                            runOnUiThread {
-//                                binding.tvYawn.visibility = if (isYawning) View.VISIBLE else View.GONE
-                            }
+
                         },
                         onLeftEyePoints = { points, imageWidth, imageHeight ->
                             binding.overlay.setLeftEyePoints(
@@ -126,13 +135,19 @@ class YawnDetectorActivity : AppCompatActivity() {
                 // Select back camera as a default
                 val cameraSelector = CameraSelector.DEFAULT_FRONT_CAMERA
 
+                binding.overlay.isMirror = when (cameraSelector.lensFacing) {
+                    CameraSelector.LENS_FACING_BACK -> false
+                    else -> true
+                }
+
+
                 try {
                     // Unbind use cases before rebinding
                     cameraProvider.unbindAll()
 
                     // Bind use cases to camera
                     cameraProvider.bindToLifecycle(
-                        this@YawnDetectorActivity,
+                        this@FaceDetectionActivity,
                         cameraSelector,
                         preview,
                         imageAnalysis
@@ -146,7 +161,7 @@ class YawnDetectorActivity : AppCompatActivity() {
     }
 
     private fun startTermRandomizer(timer: Int = 3) {
-        binding.btnStart.visibility = View.GONE
+        showStartButton(false)
 
         val job = lifecycleScope.launch {
             while(isActive) {
@@ -164,8 +179,12 @@ class YawnDetectorActivity : AppCompatActivity() {
 
             job.cancel()
 
-            binding.btnStart.visibility = View.VISIBLE
+            showStartButton(true)
         }
+    }
+
+    private fun showStartButton(isShow: Boolean) {
+        binding.btnStart.visibility = if (isShow) View.VISIBLE else View.GONE
     }
 
     private fun showMessage(text: String) {

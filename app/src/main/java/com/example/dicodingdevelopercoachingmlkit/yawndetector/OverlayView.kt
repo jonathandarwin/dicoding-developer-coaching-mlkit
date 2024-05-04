@@ -28,22 +28,15 @@ class OverlayView @JvmOverloads constructor(
 
     private var leftEyePoints = emptyList<PointF>()
     private var boundingBox: Rect? = null
-
     private var scaleX = 1f
     private var scaleY = 1f
 
-    private val rectPaint = Paint().apply {
-        color = Color.BLACK
-        style = Paint.Style.STROKE
-        strokeWidth = 10f
-    }
-
     private val boardPaint = Paint().apply {
-        color = ContextCompat.getColor(context, R.color.main_board)
+        color = ContextCompat.getColor(context, R.color.primary)
     }
 
     private val backBoardPaint = Paint().apply {
-        color = ContextCompat.getColor(context, R.color.back_board)
+        color = ContextCompat.getColor(context, R.color.secondary)
     }
 
     private val textPaint = Paint(Paint.FAKE_BOLD_TEXT_FLAG).apply {
@@ -88,7 +81,6 @@ class OverlayView @JvmOverloads constructor(
         super.onDraw(canvas)
 
         drawFaceBox(canvas)
-        drawEyeBox(canvas)
     }
 
     private fun drawFaceBox(canvas: Canvas) {
@@ -100,29 +92,29 @@ class OverlayView @JvmOverloads constructor(
             val right = if (isMirror) width - ((it.left) * scaleX) else (it.right) * scaleX
 
 
-            /** Draw Mask */
-            val scaledspiderMaskBitmap = Bitmap.createScaledBitmap(
-                spiderMaskBitmap,
-                (right - left).toInt(),
-                (bottom - top).toInt(),
-                false
-            )
+            /** TODO: Uncomment this to draw a mask */
+//            val scaledspiderMaskBitmap = Bitmap.createScaledBitmap(
+//                spiderMaskBitmap,
+//                (right - left).toInt(),
+//                (bottom - top).toInt(),
+//                false
+//            )
+//
+//            canvas.drawBitmap(
+//                scaledspiderMaskBitmap,
+//                left,
+//                top,
+//                null
+//            )
 
-            canvas.drawBitmap(
-                scaledspiderMaskBitmap,
-                left,
-                top,
-                null
-            )
-
-            /** Draw Face Box */
-            canvas.drawRect(
-                left,
-                top,
-                right,
-                bottom,
-                rectPaint
-            )
+            /** TODO: Uncomment this to draw face box */
+//            canvas.drawRect(
+//                left,
+//                top,
+//                right,
+//                bottom,
+//                rectPaint
+//            )
 
             /** Draw Board */
             val topBoard = top - 300
@@ -159,40 +151,5 @@ class OverlayView @JvmOverloads constructor(
             )
 
         }
-    }
-
-    private fun drawEyeBox(canvas: Canvas) {
-        if (leftEyePoints.isEmpty()) return
-
-        var mostLeft = Float.MAX_VALUE
-        var mostRight = Float.MIN_VALUE
-        var mostTop = Float.MAX_VALUE
-        var mostBottom = Float.MIN_VALUE
-
-        leftEyePoints.forEach {
-            if (it.x < mostLeft) {
-                mostLeft = it.x
-            }
-
-            if (it.x > mostRight) {
-                mostRight = it.x
-            }
-
-            if (it.y < mostTop) {
-                mostTop = it.y
-            }
-
-            if (it.y > mostBottom) {
-                mostBottom = it.y
-            }
-        }
-
-        canvas.drawRect(
-            width - (mostLeft * scaleX),
-            mostTop * scaleY,
-            width - (mostRight * scaleX),
-            mostBottom * scaleY,
-            rectPaint
-        )
     }
 }
