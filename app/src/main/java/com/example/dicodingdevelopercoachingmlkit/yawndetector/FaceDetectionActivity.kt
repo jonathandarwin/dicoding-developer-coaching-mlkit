@@ -112,23 +112,9 @@ class FaceDetectionActivity : AppCompatActivity() {
                 imageAnalysis.setAnalyzer(
                     analyzerExecutor,
                     FaceDetector(
-                        onSuccess = { isYawning ->
-
+                        onFace = { faceInfo ->
+                            binding.overlay.setFaceInfo(faceInfo)
                         },
-                        onLeftEyePoints = { points, imageWidth, imageHeight ->
-                            binding.overlay.setLeftEyePoints(
-                                points,
-                                imageWidth,
-                                imageHeight
-                            )
-                        },
-                        onFace = { boundingBox, imageWidth, imageHeight ->
-                            binding.overlay.setFaceBoundingBox(
-                                boundingBox,
-                                imageWidth,
-                                imageHeight
-                            )
-                        }
                     )
                 )
 
@@ -139,7 +125,6 @@ class FaceDetectionActivity : AppCompatActivity() {
                     CameraSelector.LENS_FACING_BACK -> false
                     else -> true
                 }
-
 
                 try {
                     // Unbind use cases before rebinding

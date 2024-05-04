@@ -2,11 +2,13 @@ package com.example.dicodingdevelopercoachingmlkit.yawndetector
 
 import android.graphics.PointF
 import android.graphics.Rect
+import android.graphics.RectF
 import androidx.annotation.OptIn
 import androidx.camera.core.ExperimentalGetImage
 import androidx.camera.core.ImageAnalysis
 import androidx.camera.core.ImageProxy
 import com.google.mlkit.vision.common.InputImage
+import com.google.mlkit.vision.face.Face
 import com.google.mlkit.vision.face.FaceContour
 import com.google.mlkit.vision.face.FaceDetection
 import com.google.mlkit.vision.face.FaceDetectorOptions
@@ -16,9 +18,7 @@ import com.google.mlkit.vision.face.FaceDetectorOptions
  */
 @OptIn(ExperimentalGetImage::class)
 class FaceDetector(
-    private val onSuccess: (isYawning: Boolean) -> Unit,
-    private val onLeftEyePoints: (leftEyePoints: List<PointF>, imageWidth: Int, imageHeight: Int) -> Unit,
-    private val onFace: (boundingBox: Rect, imageWidth: Int, imageHeight: Int) -> Unit,
+    private val onFace: (faceInfo: FaceInfo) -> Unit,
 ) : ImageAnalysis.Analyzer {
 
     private val options = FaceDetectorOptions.Builder()
@@ -44,21 +44,24 @@ class FaceDetector(
                     imageProxy.close()
 
                     for(face in faces) {
-                        onFace(face.boundingBox, imageWidth, imageHeight)
-                        val upperLipPointList = face.getContour(FaceContour.UPPER_LIP_BOTTOM)?.points
-                        val lowerLipPointList = face.getContour(FaceContour.LOWER_LIP_TOP)?.points
+                        val upperLipBottomPointList = face.getContour(FaceContour.UPPER_LIP_BOTTOM)?.points
+                        val lowerLipTopPointList = face.getContour(FaceContour.LOWER_LIP_TOP)?.points
 
-                        if(upperLipPointList == null || lowerLipPointList == null) return@addOnSuccessListener
+                        if(upperLipBottomPointList == null || lowerLipTopPointList == null) return@addOnSuccessListener
 
-                        val upperLip = upperLipPointList[upperLipPointList.size / 2]
-                        val lowerLip = lowerLipPointList[lowerLipPointList.size / 2]
+                        val upperLip = upperLipBottomPointList[upperLipBottomPointList.size / 2]
+                        val lowerLip = lowerLipTopPointList[lowerLipTopPointList.size / 2]
                         val diff = lowerLip.y - upperLip.y
 
-                        onSuccess(isYawning(diff))
-
-                        face.getContour(FaceContour.LEFT_EYE)?.points?.let {
-                            onLeftEyePoints(it, imageWidth, imageHeight)
-                        }
+                        onFace(
+                            FaceInfo(
+                                imageWidth = imageWidth,
+                                imageHeight = imageHeight,
+                                faceBox = face.boundingBox,
+                                mouthBox = getMouthRect(face),
+                                isYawning = isYawning(diff)
+                            )
+                        )
                     }
                 }
                 .addOnFailureListener {
@@ -70,4 +73,41 @@ class FaceDetector(
     }
 
     private fun isYawning(diff: Float) = diff >= 20
+
+    private fun getMouthRect(face: Face): RectF {
+        val upperLipTopPointList = face.getContour(FaceContour.UPPER_LIP_TOP)?.points.orEmpty()
+        val lowerLipBottomPointList = face.getContour(FaceContour.LOWER_LIP_BOTTOM)?.points.orEmpty()
+
+        val mouthPoints = upperLipTopPointList + lowerLipBottomPointList
+
+        var left = Float.MAX_VALUE
+        var right = Float.MIN_VALUE
+        var top = Float.MAX_VALUE
+        var bottom = Float.MIN_VALUE
+
+        mouthPoints.forEach {
+            if (it.x < left) {
+                left = it.x
+            }
+
+            if (it.x > right) {
+                right = it.x
+            }
+
+            if (it.y < top) {
+                top = it.y
+            }
+
+            if (it.y > bottom) {
+                bottom = it.y
+            }
+        }
+
+        return RectF(
+            left,
+            right,
+            top,
+            bottom
+        )
+    }
 }

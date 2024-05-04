@@ -25,11 +25,13 @@ class OverlayView @JvmOverloads constructor(
 ) : View(context, attributeSet) {
 
     private val spiderMaskBitmap = BitmapFactory.decodeResource(context.resources, R.drawable.spiderman)
+    private val censoredBitmap = BitmapFactory.decodeResource(context.resources, R.drawable.censored)
 
-    private var leftEyePoints = emptyList<PointF>()
     private var boundingBox: Rect? = null
     private var scaleX = 1f
     private var scaleY = 1f
+
+    private var mouthRect: RectF? = null
 
     private val boardPaint = Paint().apply {
         color = ContextCompat.getColor(context, R.color.primary)
@@ -53,37 +55,23 @@ class OverlayView @JvmOverloads constructor(
             invalidate()
         }
 
-    fun setLeftEyePoints(
-        leftEyePoints: List<PointF>,
-        imageWidth: Int,
-        imageHeight: Int,
-    ) {
-        this.leftEyePoints = leftEyePoints
+    fun setFaceInfo(faceInfo: FaceInfo) {
+        this.boundingBox = faceInfo.faceBox
+        this.mouthRect = if (faceInfo.isYawning) faceInfo.mouthBox else null
 
-        scaleX = width / imageHeight.toFloat()
-        scaleY = height / imageWidth.toFloat()
-        invalidate()
-    }
-
-    fun setFaceBoundingBox(
-        boundingBox: Rect,
-        imageWidth: Int,
-        imageHeight: Int,
-    ) {
-        this.boundingBox = boundingBox
-        
-        scaleX = width / imageHeight.toFloat()
-        scaleY = height / imageWidth.toFloat()
+        scaleX = width / faceInfo.imageHeight.toFloat()
+        scaleY = height / faceInfo.imageWidth.toFloat()
         invalidate()
     }
 
     override fun onDraw(canvas: Canvas) {
         super.onDraw(canvas)
 
-        drawFaceBox(canvas)
+        drawBoardAboveHead(canvas)
+//        drawCensoredMouth(canvas)
     }
 
-    private fun drawFaceBox(canvas: Canvas) {
+    private fun drawBoardAboveHead(canvas: Canvas) {
         /**
          * If we are using front camera, we should mirror the coordinate
          */
@@ -153,4 +141,29 @@ class OverlayView @JvmOverloads constructor(
             )
         }
     }
+
+    private fun drawCensoredMouth(canvas: Canvas) {
+        mouthRect?.getScaledRect().apply {
+            val scaledCensored = Bitmap.createScaledBitmap(
+                censoredBitmap,
+                ((right - left) * 1.2).toInt(),
+                ((bottom - top) * 1.2).toInt(),
+                false
+            )
+
+            canvas.drawBitmap(
+                scaledCensored,
+                left.toFloat(),
+                top.toFloat(),
+                null
+            )
+        }
+    }
+
+    private fun RectF.getScaledRect(): RectF = RectF(
+        if (isMirror) width - ((right) * scaleX) else (left) * scaleX,
+        (top) * scaleY,
+        if (isMirror) width - ((left) * scaleX) else (right) * scaleX,
+        (bottom) * scaleY,
+    )
 }
