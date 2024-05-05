@@ -1,4 +1,4 @@
-package com.example.dicodingdevelopercoachingmlkit.yawndetector
+package com.example.dicodingdevelopercoachingmlkit.facedetection
 
 import android.content.Context
 import android.graphics.Bitmap

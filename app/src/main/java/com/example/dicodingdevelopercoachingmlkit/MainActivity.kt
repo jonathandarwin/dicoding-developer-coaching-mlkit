@@ -5,7 +5,7 @@ import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import com.example.dicodingdevelopercoachingmlkit.databinding.ActivityMainBinding
 import com.example.dicodingdevelopercoachingmlkit.texttranslator.TextTranslatorActivity
-import com.example.dicodingdevelopercoachingmlkit.yawndetector.FaceDetectionActivity
+import com.example.dicodingdevelopercoachingmlkit.facedetection.FaceDetectionActivity
 
 class MainActivity : AppCompatActivity() {
 

@@ -24,7 +24,7 @@
             </intent-filter>
         </activity>
 
-        <activity android:name=".yawndetector.FaceDetectionActivity" />
+        <activity android:name=".facedetection.FaceDetectionActivity" />
         <activity android:name=".texttranslator.TextTranslatorActivity" />
     </application>
 

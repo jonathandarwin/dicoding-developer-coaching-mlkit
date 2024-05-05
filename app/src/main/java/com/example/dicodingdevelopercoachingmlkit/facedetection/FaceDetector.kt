@@ -1,4 +1,4 @@
-package com.example.dicodingdevelopercoachingmlkit.yawndetector
+package com.example.dicodingdevelopercoachingmlkit.facedetection
 
 import android.graphics.RectF
 import androidx.annotation.OptIn

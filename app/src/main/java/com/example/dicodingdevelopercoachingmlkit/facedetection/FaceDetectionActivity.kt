@@ -1,4 +1,4 @@
-package com.example.dicodingdevelopercoachingmlkit.yawndetector
+package com.example.dicodingdevelopercoachingmlkit.facedetection
 
 import android.Manifest
 import android.annotation.SuppressLint
