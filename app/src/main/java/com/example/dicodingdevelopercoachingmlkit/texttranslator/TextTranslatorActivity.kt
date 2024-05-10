@@ -15,7 +15,7 @@ class TextTranslatorActivity : AppCompatActivity() {
 
     private var language = Language.English
 
-    private val translator = Translator()
+    private val textTranslator = TextTranslator()
 
     private lateinit var binding: ActivityTextTranslatorBinding
 
@@ -33,6 +33,11 @@ class TextTranslatorActivity : AppCompatActivity() {
         }
     }
 
+    override fun onDestroy() {
+        super.onDestroy()
+        textTranslator.close()
+    }
+
     private fun translateAllText() {
         traverseAllViewChild(binding.root) {
             translateText(it)
@@ -40,7 +45,7 @@ class TextTranslatorActivity : AppCompatActivity() {
     }
 
     private fun translateText(textView: TextView) {
-        translator.translate(
+        textTranslator.translate(
             text = textView.text.toString(),
             sourceLanguage = language,
             targetLanguage = language.switch(),
@@ -65,7 +70,7 @@ class TextTranslatorActivity : AppCompatActivity() {
     }
 
     private fun checkLoader() {
-        if (translator.areTranslationAllComplete) {
+        if (textTranslator.areTranslationAllComplete) {
             hideTranslateLoader()
         } else {
             showTranslateLoader()

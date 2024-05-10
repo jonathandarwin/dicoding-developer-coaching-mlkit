@@ -3,12 +3,15 @@ package com.example.dicodingdevelopercoachingmlkit.texttranslator
 import com.google.mlkit.common.model.DownloadConditions
 import com.google.mlkit.nl.translate.TranslateLanguage
 import com.google.mlkit.nl.translate.Translation
+import com.google.mlkit.nl.translate.Translator
 import com.google.mlkit.nl.translate.TranslatorOptions
 
 /**
  * Created by Jonathan Darwin on 30 April 2024
  */
-class Translator {
+class TextTranslator {
+
+    private val translatorMap = mutableMapOf<String, Translator>()
 
     private var translationProgressCount = 0
 
@@ -24,21 +27,16 @@ class Translator {
     ) {
         translationProgressCount++
 
-        val options = TranslatorOptions.Builder()
-            .setSourceLanguage(getTranslateLanguage(sourceLanguage))
-            .setTargetLanguage(getTranslateLanguage(targetLanguage))
-            .build()
-
-        val client = Translation.getClient(options)
+        val translator = getTranslator(sourceLanguage, targetLanguage)
 
         val conditions = DownloadConditions.Builder()
             .requireWifi()
             .build()
 
-        client
+        translator
             .downloadModelIfNeeded(conditions)
             .addOnSuccessListener {
-                client.translate(text)
+                translator.translate(text)
                     .addOnSuccessListener {
                         translationProgressCount--
                         onSuccess(it)
@@ -52,6 +50,31 @@ class Translator {
                 translationProgressCount--
                 onFailure(it)
             }
+    }
+
+    fun close() {
+        translatorMap.values.forEach {
+            it.close()
+        }
+    }
+
+    private fun getTranslator(
+        sourceLanguage: Language,
+        targetLanguage: Language,
+    ): Translator {
+        val translatorKey = "%s#%s".format(sourceLanguage.key, targetLanguage.key)
+        val translator = translatorMap[translatorKey]
+
+        return translator ?: run {
+            val options = TranslatorOptions.Builder()
+                .setSourceLanguage(getTranslateLanguage(sourceLanguage))
+                .setTargetLanguage(getTranslateLanguage(targetLanguage))
+                .build()
+
+            Translation.getClient(options).also {
+                translatorMap[translatorKey] = it
+            }
+        }
     }
 
     private fun getTranslateLanguage(language: Language): String {
