@@ -15,6 +15,10 @@ class TextTranslator {
 
     private var translationProgressCount = 0
 
+    private val downloadConditions = DownloadConditions.Builder()
+                                        .requireWifi()
+                                        .build()
+
     val areTranslationAllComplete: Boolean
         get() = translationProgressCount == 0
 
@@ -29,12 +33,8 @@ class TextTranslator {
 
         val translator = getTranslator(sourceLanguage, targetLanguage)
 
-        val conditions = DownloadConditions.Builder()
-            .requireWifi()
-            .build()
-
         translator
-            .downloadModelIfNeeded(conditions)
+            .downloadModelIfNeeded(downloadConditions)
             .addOnSuccessListener {
                 translator.translate(text)
                     .addOnSuccessListener {
