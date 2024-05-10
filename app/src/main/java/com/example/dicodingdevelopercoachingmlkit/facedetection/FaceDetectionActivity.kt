@@ -56,6 +56,15 @@ class FaceDetectionActivity : AppCompatActivity() {
         "Time Complexity",
     )
 
+    private val faceDetector = FaceDetector(
+        onFaceDetected = { faceInfo ->
+            binding.overlay.setFaceInfo(faceInfo)
+        },
+        onFailure = { throwable ->
+            println("JOE LOG Error when detecting face $throwable")
+        }
+    )
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityFaceDetectionBinding.inflate(layoutInflater)
@@ -74,6 +83,7 @@ class FaceDetectionActivity : AppCompatActivity() {
     override fun onDestroy() {
         super.onDestroy()
         analyzerExecutor.shutdown()
+        faceDetector.close()
     }
 
     private fun setupView() {
@@ -104,23 +114,13 @@ class FaceDetectionActivity : AppCompatActivity() {
                         it.setSurfaceProvider(binding.preview.surfaceProvider)
                     }
 
-                /** Setup analyzer */
+                /** Setup face analyzer */
                 val imageAnalysis = ImageAnalysis.Builder()
                     .setTargetRotation(binding.preview.display.rotation)
                     .setBackpressureStrategy(ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST)
                     .build()
 
-                imageAnalysis.setAnalyzer(
-                    analyzerExecutor,
-                    FaceDetector(
-                        onFaceDetected = { faceInfo ->
-                            binding.overlay.setFaceInfo(faceInfo)
-                        },
-                        onFailure = { throwable ->
-                            println("JOE LOG Error when detecting face $throwable")
-                        }
-                    )
-                )
+                imageAnalysis.setAnalyzer(analyzerExecutor, faceDetector)
 
                 /** Setup camera */
                 val cameraSelector = CameraSelector.DEFAULT_FRONT_CAMERA

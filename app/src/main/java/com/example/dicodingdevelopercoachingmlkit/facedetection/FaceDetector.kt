@@ -36,7 +36,7 @@ class FaceDetector(
 
             val inputImage = InputImage.fromMediaImage(
                 image,
-                imageProxy.imageInfo.rotationDegrees
+                0
             )
 
             /** Step 2 : Run inference */
@@ -132,5 +132,9 @@ class FaceDetector(
             right,
             bottom
         )
+    }
+
+    fun close() {
+        faceDetector.close()
     }
 }
