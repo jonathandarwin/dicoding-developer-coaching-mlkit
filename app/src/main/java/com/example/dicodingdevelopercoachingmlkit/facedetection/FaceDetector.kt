@@ -42,8 +42,6 @@ class FaceDetector(
             /** Step 2 : Run inference */
             faceDetector.process(inputImage)
                 .addOnSuccessListener { faces ->
-                    imageProxy.close()
-
                     for(face in faces) {
                         /** Step 3 : Show result to UI */
                         onFaceDetected(
@@ -58,8 +56,10 @@ class FaceDetector(
                     }
                 }
                 .addOnFailureListener {
-                    imageProxy.close()
                     onFailure(it)
+                }
+                .addOnCompleteListener {
+                    imageProxy.close()
                 }
         } catch (throwable: Throwable) {
             imageProxy.close()
